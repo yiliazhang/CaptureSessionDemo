@@ -14,31 +14,31 @@
 #import "CameraView.h"
 @interface CameraFaceViewController ()<CameraViewDelegate, UIGestureRecognizerDelegate>
 /// 关闭视图控制器
-@property(nonatomic, strong) UIButton *closeBtn;
+@property(nonatomic, strong) UIButton *closeButton;
 
 /// 提示
-@property(nonatomic, strong) UIButton *promoteBtn;
+@property(nonatomic, strong) UIButton *promoteButton;
 
 /// 提示信息 label
-@property(nonatomic, strong) UILabel *promptLab;
+@property(nonatomic, strong) UILabel *promptLabel;
 
 /// 拍照的图片
-@property(nonatomic, strong) UIImageView *takePhotoImgV;
+@property(nonatomic, strong) UIImageView *photoImageView;
 
 /// 拍照按钮背景
-@property(nonatomic, strong) UIView *shootingBackView;
+@property(nonatomic, strong) UIView *shootingBGView;
 
 /// 拍照
-@property(nonatomic, strong) UIButton *shootingBtn;
+@property(nonatomic, strong) UIButton *shootingButton;
 
 /// 拍摄完成的对号
 @property(nonatomic, strong) UIButton *confirmButton;
 
 /// 重新拍摄
-@property(nonatomic, strong) UIButton *reShootBtn;
+@property(nonatomic, strong) UIButton *reShootButton;
 
 /// 切换摄像头
-@property(nonatomic, strong) UIButton *switchBtn;
+@property(nonatomic, strong) UIButton *switchButton;
 
 /// 面部检测错误结果
 @property(nonatomic, strong) NSString *errorResults;
@@ -108,7 +108,7 @@ static CGFloat const kDetectFaceHeight = 384.0;
 #pragma mark - custom delegate
 
 /// 本地采集提示
-- (void)promoteBtnAction:(id)sender {
+- (void)promoteButtonAction:(id)sender {
 //    GWFaceInfoCollectAlertViewController *faceInfoCollectAlertViewController = [[GWFaceInfoCollectAlertViewController alloc] initWithTitle:@"本地采集" andContent:@"将符合人脸识别质量要求的人脸照片采集到本地，再通过其他应用提交给相应的管理员，由其将人脸照片录入系统。" andEnterTitle:@"确定" enterCallback:^{
 //    } andCancelTitle:@"" cancelCallback:^{
 //    }];
@@ -123,81 +123,81 @@ static CGFloat const kDetectFaceHeight = 384.0;
 - (void)setupUIs
 {
     self.view.backgroundColor = [UIColor orangeColor];
-    [self.view addSubview:self.promoteBtn];
-    [self.view addSubview:self.promptLab];
+    [self.view addSubview:self.promoteButton];
+    [self.view addSubview:self.promptLabel];
     [self.view addSubview:self.cameraView];
-    [self.view insertSubview:self.takePhotoImgV aboveSubview:self.cameraView];
-    [self.view addSubview:self.shootingBackView];
-    [self.view addSubview:self.shootingBtn];
-    [self.view addSubview:self.reShootBtn];
-    [self.view addSubview:self.switchBtn];
-    [self.view insertSubview:self.confirmButton aboveSubview:self.shootingBtn];
-    [self.view addSubview:self.closeBtn];
+    [self.view insertSubview:self.photoImageView aboveSubview:self.cameraView];
+    [self.view addSubview:self.shootingBGView];
+    [self.view addSubview:self.shootingButton];
+    [self.view addSubview:self.reShootButton];
+    [self.view addSubview:self.switchButton];
+    [self.view insertSubview:self.confirmButton aboveSubview:self.shootingButton];
+    [self.view addSubview:self.closeButton];
     
-    [self.closeBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.closeButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.view.mas_left).offset(10);
         make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(10);
         make.width.height.equalTo(@80);
     }];
     
-    [self.promoteBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.promoteButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(self.view.mas_right).offset(-20);
         make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(10);
         make.width.height.equalTo(@80);
     }];
     
-    self.promoteBtn.hidden = YES;
+    self.promoteButton.hidden = YES;
     
-    [self.promptLab mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.promptLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.view.mas_left).offset(10);
         make.right.equalTo(self.view.mas_right).offset(-10);
-        make.top.equalTo(self.closeBtn.mas_bottom).offset(35);
+        make.top.equalTo(self.closeButton.mas_bottom).offset(35);
         make.height.equalTo(@40);
     }];
     
     [self.cameraView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.promptLab.mas_bottom).offset(10);
+        make.top.equalTo(self.promptLabel.mas_bottom).offset(10);
         make.width.equalTo(@(kDetectFaceWidth));
         make.height.equalTo(@(kDetectFaceHeight));
         make.centerX.equalTo(self.view.mas_centerX);
     }];
     
-    [self.takePhotoImgV mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.promptLab.mas_bottom).offset(10);
+    [self.photoImageView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.promptLabel.mas_bottom).offset(10);
         make.width.equalTo(@246);
         //        make.height.equalTo(@296);
         make.center.equalTo(self.cameraView);
     }];
     
-    [self.shootingBackView mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.shootingBGView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerX.equalTo(self.view);
         make.bottom.equalTo(self.view.mas_safeAreaLayoutGuideBottom).offset(-32);
         make.width.height.equalTo(@80);
     }];
     
-    [self.shootingBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.center.equalTo(self.shootingBackView);
+    [self.shootingButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.center.equalTo(self.shootingBGView);
         make.width.height.equalTo(@80);
     }];
     
     [self.confirmButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.shootingBtn.mas_right);
-        make.centerY.equalTo(self.shootingBtn);
-        make.width.height.equalTo(self.shootingBtn);
+        make.left.equalTo(self.shootingButton.mas_right);
+        make.centerY.equalTo(self.shootingButton);
+        make.width.height.equalTo(self.shootingButton);
     }];
     
-    [self.reShootBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.centerY.equalTo(self.shootingBackView);
+    [self.reShootButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(self.shootingBGView);
         make.left.equalTo(@20);
         make.width.height.equalTo(@80);
     }];
     
     // 切换摄像头暂时图片方向有问题
-    [self.switchBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.centerY.equalTo(self.shootingBackView);
+    [self.switchButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(self.shootingBGView);
         make.right.equalTo(self.view).offset(-20);
-        make.width.equalTo(self.reShootBtn);
-        make.height.equalTo(self.reShootBtn);
+        make.width.equalTo(self.reShootButton);
+        make.height.equalTo(self.reShootButton);
     }];
     [self.cameraView addSubview:self.faceCameraView];
     [self.faceCameraView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -205,7 +205,7 @@ static CGFloat const kDetectFaceHeight = 384.0;
     }];
 }
 
-- (void)closeBtnAction:(UIButton *)sender
+- (void)closeButtonAction:(UIButton *)sender
 {
     [self.faceCameraView stopCaptureSession];
     if (self.uploadCompletionBlock) {
@@ -214,7 +214,7 @@ static CGFloat const kDetectFaceHeight = 384.0;
 }
 
 /// 拍照
-- (void)shootingBtnAction:(UIButton *)sender
+- (void)shootingButtonAction:(UIButton *)sender
 {
     self.rectLayer.hidden = YES;
     if (!self.lastImage) {
@@ -236,15 +236,15 @@ static CGFloat const kDetectFaceHeight = 384.0;
 #endif
         NSLog(@"take photo---------1");
         weakSelf.confirmButton.hidden = NO;
-        weakSelf.reShootBtn.hidden = NO;
-        weakSelf.switchBtn.hidden = YES;
+        weakSelf.reShootButton.hidden = NO;
+        weakSelf.switchButton.hidden = YES;
         [weakSelf faceDectDidTakePhoto: image];
     }];
     
 }
 
 /// 重拍
-- (void)reShootBtnAction:(UIButton *)sender
+- (void)reShootButtonAction:(UIButton *)sender
 {
     self.lastImage = nil;
     self.rectLayer.hidden = YES;
@@ -252,20 +252,20 @@ static CGFloat const kDetectFaceHeight = 384.0;
     self.errorResults = @"";
     // 隐藏拍摄结果
     self.confirmButton.hidden = YES;
-    self.reShootBtn.hidden = YES;
-    self.switchBtn.hidden = NO;
-    self.takePhotoImgV.image = nil;
+    self.reShootButton.hidden = YES;
+    self.switchButton.hidden = NO;
+    self.photoImageView.image = nil;
     self.cameraView.hidden = NO;
 }
 
 /// 确定拍摄完成提交或者保存到相册事件
 - (void)shootedBtnAction:(UIButton *)sender
 {
-    UIImage *image = self.takePhotoImgV.image;
+    UIImage *image = self.photoImageView.image;
     if (!image)
     {
         NSLog(@"未检测到有效人脸信息");
-        [self reShootBtnAction:sender];
+        [self reShootButtonAction:sender];
         return;
     }
 //    [self shootedImage:image localCollect:NO];
@@ -290,70 +290,70 @@ static CGFloat const kDetectFaceHeight = 384.0;
             || faceViewBounds.size.height == 0
             )
         {
-            self.takePhotoImgV.image = nil;
+            self.photoImageView.image = nil;
             self.cameraView.hidden = NO;
             // 没有虹软人脸特征
             NSLog(@"无法获取人脸特征，请重新拍摄");
-            [self reShootBtnAction:nil];
+            [self reShootButtonAction:nil];
         } else {
             CGRect modifiedBounds = CGRectInset(faceViewBounds, -20, -20);
             CGFloat scaleX = kDetectFaceWidth/photo.size.width;
             CGFloat scaleY = kDetectFaceHeight/(photo.size.height - 100);
             photoImg = [photo gw_imageInRect:modifiedBounds scaleX:scaleX scaleY:scaleY];
-            self.takePhotoImgV.image = photoImg;
+            self.photoImageView.image = photoImg;
         }
     }];
 }
 
-- (UIButton *)closeBtn
+- (UIButton *)closeButton
 {
-    if (!_closeBtn)
+    if (!_closeButton)
     {
-        _closeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_closeBtn setTitle:@"关闭" forState:UIControlStateNormal];
-        [_closeBtn addTarget:self action:@selector(closeBtnAction:) forControlEvents:UIControlEventTouchUpInside];
+        _closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_closeButton setTitle:@"关闭" forState:UIControlStateNormal];
+        [_closeButton addTarget:self action:@selector(closeButtonAction:) forControlEvents:UIControlEventTouchUpInside];
     }
-    return _closeBtn;
+    return _closeButton;
 }
 
-- (UIButton *)promoteBtn
+- (UIButton *)promoteButton
 {
-    if (!_promoteBtn)
+    if (!_promoteButton)
     {
-        _promoteBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_promoteBtn setImage:[UIImage imageNamed:@"icon_xiangqing"] forState:UIControlStateNormal];
-        _promoteBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
-        [_promoteBtn addTarget:self action:@selector(promoteBtnAction:) forControlEvents:UIControlEventTouchUpInside];
-        _promoteBtn.semanticContentAttribute = UISemanticContentAttributeForceLeftToRight;
-        _promoteBtn.imageEdgeInsets = UIEdgeInsetsMake(0, 10, 0, 0);
+        _promoteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_promoteButton setImage:[UIImage imageNamed:@"icon_xiangqing"] forState:UIControlStateNormal];
+        _promoteButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        [_promoteButton addTarget:self action:@selector(promoteButtonAction:) forControlEvents:UIControlEventTouchUpInside];
+        _promoteButton.semanticContentAttribute = UISemanticContentAttributeForceLeftToRight;
+        _promoteButton.imageEdgeInsets = UIEdgeInsetsMake(0, 10, 0, 0);
     }
-    return _promoteBtn;
+    return _promoteButton;
 }
 
-- (UIView *)shootingBackView
+- (UIView *)shootingBGView
 {
-    if (!_shootingBackView)
+    if (!_shootingBGView)
     {
-        _shootingBackView = [[UIView alloc] init];
-        _shootingBackView.backgroundColor = [[UIColor orangeColor] colorWithAlphaComponent:0.1];
-        _shootingBackView.layer.cornerRadius = 34;
-        _shootingBackView.layer.masksToBounds = YES;
+        _shootingBGView = [[UIView alloc] init];
+        _shootingBGView.backgroundColor = [[UIColor orangeColor] colorWithAlphaComponent:0.1];
+        _shootingBGView.layer.cornerRadius = 34;
+        _shootingBGView.layer.masksToBounds = YES;
     }
-    return _shootingBackView;
+    return _shootingBGView;
 }
 
-- (UIButton *)shootingBtn
+- (UIButton *)shootingButton
 {
-    if (!_shootingBtn)
+    if (!_shootingButton)
     {
-        _shootingBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_shootingBtn setTitle:@"拍摄" forState:UIControlStateNormal];
-        [_shootingBtn addTarget:self action:@selector(shootingBtnAction:) forControlEvents:UIControlEventTouchUpInside];
-        _shootingBtn.layer.cornerRadius = 25;
-        _shootingBtn.layer.masksToBounds = YES;
-        _shootingBtn.backgroundColor = [UIColor redColor];
+        _shootingButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_shootingButton setTitle:@"拍摄" forState:UIControlStateNormal];
+        [_shootingButton addTarget:self action:@selector(shootingButtonAction:) forControlEvents:UIControlEventTouchUpInside];
+        _shootingButton.layer.cornerRadius = 25;
+        _shootingButton.layer.masksToBounds = YES;
+        _shootingButton.backgroundColor = [UIColor redColor];
     }
-    return _shootingBtn;
+    return _shootingButton;
 }
 
 /// 拍摄完成的对号
@@ -371,57 +371,57 @@ static CGFloat const kDetectFaceHeight = 384.0;
 }
 
 /// 重新拍摄
-- (UIButton *)reShootBtn
+- (UIButton *)reShootButton
 {
-    if (!_reShootBtn)
+    if (!_reShootButton)
     {
-        _reShootBtn = [[UIButton alloc] init];
-        [_reShootBtn setTitle:@"重新拍摄" forState:UIControlStateNormal];
-        [_reShootBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        _reShootBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
-        [_reShootBtn addTarget:self action:@selector(reShootBtnAction:) forControlEvents:UIControlEventTouchUpInside];
-        _reShootBtn.hidden = YES;
+        _reShootButton = [[UIButton alloc] init];
+        [_reShootButton setTitle:@"重新拍摄" forState:UIControlStateNormal];
+        [_reShootButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        _reShootButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        [_reShootButton addTarget:self action:@selector(reShootButtonAction:) forControlEvents:UIControlEventTouchUpInside];
+        _reShootButton.hidden = YES;
     }
-    return _reShootBtn;
+    return _reShootButton;
 }
 
-- (UIButton *)switchBtn
+- (UIButton *)switchButton
 {
-    if (!_switchBtn)
+    if (!_switchButton)
     {
-        _switchBtn = [[UIButton alloc] init];
-        [_switchBtn setTitle:@"前后切换" forState:UIControlStateNormal];
-        [_switchBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        _switchBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
-        [_switchBtn addTarget:self action:@selector(switchCameraAction:) forControlEvents:UIControlEventTouchUpInside];
+        _switchButton = [[UIButton alloc] init];
+        [_switchButton setTitle:@"前后切换" forState:UIControlStateNormal];
+        [_switchButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        _switchButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        [_switchButton addTarget:self action:@selector(switchCameraAction:) forControlEvents:UIControlEventTouchUpInside];
     }
-    return _switchBtn;
+    return _switchButton;
 }
 
 /// 提示label
-- (UILabel *)promptLab
+- (UILabel *)promptLabel
 {
-    if (!_promptLab)
+    if (!_promptLabel)
     {
-        _promptLab = [[UILabel alloc] init];
-        _promptLab.font = [UIFont systemFontOfSize:15];
-        _promptLab.textColor = [UIColor grayColor];
-        _promptLab.numberOfLines = 0;
-        _promptLab.text = @"facedetect.content.commonPromote";
-        _promptLab.textAlignment = NSTextAlignmentCenter;
+        _promptLabel = [[UILabel alloc] init];
+        _promptLabel.font = [UIFont systemFontOfSize:15];
+        _promptLabel.textColor = [UIColor grayColor];
+        _promptLabel.numberOfLines = 0;
+        _promptLabel.text = @"facedetect.content.commonPromote";
+        _promptLabel.textAlignment = NSTextAlignmentCenter;
     }
-    return _promptLab;
+    return _promptLabel;
 }
 
 /// 拍照结果页
-- (UIImageView *)takePhotoImgV
+- (UIImageView *)photoImageView
 {
-    if (!_takePhotoImgV)
+    if (!_photoImageView)
     {
-        _takePhotoImgV = [[UIImageView alloc] init];
-        _takePhotoImgV.contentMode = UIViewContentModeScaleAspectFit;
+        _photoImageView = [[UIImageView alloc] init];
+        _photoImageView.contentMode = UIViewContentModeScaleAspectFit;
     }
-    return _takePhotoImgV;
+    return _photoImageView;
 }
 
 

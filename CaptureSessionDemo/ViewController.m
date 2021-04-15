@@ -19,10 +19,6 @@
     self.view.backgroundColor = [UIColor redColor];
 }
 
-- (IBAction)showFaceCollect:(id)sender {
-    
-}
-
 - (IBAction)showFaceCollect1:(id)sender {
     CameraFaceViewController *viewController = [[CameraFaceViewController alloc] init];
     viewController.uploadCompletionBlock = ^(NSString * _Nonnull mediaID) {
