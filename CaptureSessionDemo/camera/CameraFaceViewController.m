@@ -11,7 +11,6 @@
 #import <Photos/Photos.h>
 #import <Masonry.h>
 #import "UIImage+ConversionUtils.h"
-#import "Utility.h"
 #import "CameraView.h"
 @interface CameraFaceViewController ()<CameraViewDelegate, UIGestureRecognizerDelegate>
 /// 关闭视图控制器
@@ -209,7 +208,9 @@ static CGFloat const kDetectFaceHeight = 384.0;
 - (void)closeBtnAction:(UIButton *)sender
 {
     [self.faceCameraView stopCaptureSession];
-    [self.navigationController popViewControllerAnimated:YES];
+    if (self.uploadCompletionBlock) {
+        self.uploadCompletionBlock(@"");
+    }
 }
 
 /// 拍照
@@ -486,11 +487,13 @@ static CGFloat const kDetectFaceHeight = 384.0;
 {
     if (!_faceCameraView)
     {
+        
+        
         _faceCameraView = [[CameraView alloc] init];
         _faceCameraView.delegate = self;
         _faceCameraView.shouldScaleEnable = YES;
         _faceCameraView.shouldFocusEnable = YES;
-        _faceCameraView.shouldExposureEnable = YES;
+        _faceCameraView.shouldFocusEnable = YES;
         _faceCameraView.isShowFaceDetectBorder = YES;
         // 导入到相册的图片尺寸比例
         _faceCameraView.cutoutImageSize = CGSizeMake(246, 260);

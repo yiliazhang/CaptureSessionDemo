@@ -8,41 +8,26 @@
 #import "CameraView.h"
 #import "UIImage+ConversionUtils.h"
 #import "Masonry.h"
+#import "GWCameraManager.h"
 
-/// 动画间隔
-static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
-
-@interface CameraView ()<AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate, UIGestureRecognizerDelegate>
+@interface CameraView ()<CameraManagerDelegate, UIGestureRecognizerDelegate>
 {
     CGFloat _startLocationY;
     CGFloat _startValue;
     CGFloat _currentZoomFactor;
 }
-///
 
-@property (nonatomic, strong) AVCaptureSession           *captureSession;
-@property (nonatomic, strong) AVCaptureDeviceInput       *deviceInput;
-@property (nonatomic, strong) AVCaptureVideoDataOutput   *dataOutput;
-@property (nonatomic, strong) AVCaptureConnection        *videoConnection;
-@property (nonatomic, assign) AVCaptureVideoOrientation   videoOrientation;
-@property (nonatomic, strong) dispatch_queue_t            videoCaptureQueue;
+@property (nonatomic, strong) GWCameraManager *cameraManager;
 
-@property (nonatomic, assign) CGPoint                     focusPoint;
-@property (nonatomic, assign) CGFloat                     exposureValue;
-
-
-@property (nonatomic, strong) AVCaptureVideoPreviewLayer *previewLayer;
-
-@property (nonatomic, strong) UITapGestureRecognizer      *tapGesture;
-@property (nonatomic, strong) UIPinchGestureRecognizer    *pinGesture;
+@property (nonatomic, strong) UITapGestureRecognizer *tapGesture;
+@property (nonatomic, strong) UIPinchGestureRecognizer *pinGesture;
 
 @property (nonatomic,strong) UIImageView *glassesImageView;
-@property (nonatomic, strong) UIVisualEffectView          *blurView;
-@property (nonatomic, strong) UIImageView                 *focusImageView;
-
-@property (nonatomic, strong) NSTimer                     *focusTimer;
-
+@property (nonatomic, strong) UIVisualEffectView *blurView;
+@property (nonatomic, strong) UIImageView *focusImageView;
+@property (nonatomic, strong) NSTimer *focusTimer;
 @end
+
 @implementation CameraView
 
 - (instancetype)init {
@@ -61,92 +46,10 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     return self;
 }
 
-- (AVCaptureVideoDataOutput *)videoDataOutput {
-    AVCaptureVideoDataOutput *captureOutput = [[AVCaptureVideoDataOutput alloc] init];
-    [captureOutput setAlwaysDiscardsLateVideoFrames:YES];
-#ifdef __OUTPUT_BGRA__
-    NSDictionary *dic = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_32BGRA] forKey:(id)kCVPixelBufferPixelFormatTypeKey];
-#else
-    NSDictionary *dic = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_420YpCbCr8BiPlanarFullRange] forKey:(id)kCVPixelBufferPixelFormatTypeKey];
-#endif
-    [captureOutput setVideoSettings:dic];
-//    dispatch_queue_t videoCaptureQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
-    [captureOutput setSampleBufferDelegate:self queue:self.videoCaptureQueue];
-    return captureOutput;
-}
-
-- (void)setupCaptureSessionPostion:(AVCaptureDevicePosition) position {
-    [self.captureSession beginConfiguration];
-    if (self.deviceInput) {
-        [self.captureSession removeInput:self.deviceInput];
-    }
-    self.deviceInput = [[AVCaptureDeviceInput alloc] initWithDevice:[self cameraWithPosition:position] error:nil];
-    if ([self.captureSession canAddInput:self.deviceInput]) {
-        [self.captureSession addInput:self.deviceInput];
-    }
-    if (self.dataOutput) {
-        [self.dataOutput setSampleBufferDelegate:nil queue:self.videoCaptureQueue];
-        [self.captureSession removeOutput:self.dataOutput];
-    }
-    self.dataOutput = [self videoDataOutput];
-    
-    if ([self.captureSession canAddOutput:self.dataOutput])
-    {
-        [self.captureSession addOutput:self.dataOutput];
-    }
-    self.videoConnection = [self.dataOutput connectionWithMediaType:AVMediaTypeVideo];
-    
-    if (self.videoConnection.supportsVideoMirroring) {
-        [self.videoConnection setVideoMirrored:YES];
-    }
-    
-    if ([self.videoConnection isVideoOrientationSupported]) {
-        [self.videoConnection setVideoOrientation:self.videoOrientation];
-    }
-    
-    [self.captureSession commitConfiguration];
-}
-
-- (AVCaptureDevice *)cameraWithPosition:(AVCaptureDevicePosition)position {
-    NSArray *devices  = [self captureDevices];
-    for (AVCaptureDevice *device in devices) {
-        if ([device position] == position) {
-            return device;
-        }
-    }
-    return nil;
-}
-
-- (NSArray<AVCaptureDevice *> *)captureDevices {
-    AVCaptureDeviceDiscoverySession *deviceDiscoverySession = [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInWideAngleCamera] mediaType:AVMediaTypeVideo position:AVCaptureDevicePositionUnspecified];
-    return deviceDiscoverySession.devices;
-}
-
-- (AVCaptureSession *)captureSession {
-    if (!_captureSession)
-    {
-        _captureSession = [[AVCaptureSession alloc] init];
-        _captureSession.sessionPreset = AVCaptureSessionPresetHigh;
-    }
-    return _captureSession;
-}
-
-
-- (void)startCaptureSession {
-    [self startCapture];
-}
-
-- (void)stopCaptureSession {
-    [self stopCapture];
-}
-
 - (void)setupSubviews {
-    
-    UIInterfaceOrientation uiOrientation = [[UIApplication sharedApplication] statusBarOrientation];
-    self.videoOrientation = (AVCaptureVideoOrientation)uiOrientation;
     //        self.isShowFaceDetectBorder = YES;
     self.shouldExposureEnable = NO;
-    [self.layer addSublayer:self.previewLayer];
+    [self.layer addSublayer:self.cameraManager.previewLayer];
     //[self addSubview:self.blurView];
     [self addSubview:self.focusImageView];
     self.userInteractionEnabled = YES;
@@ -159,20 +62,24 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     }];
 }
 
-- (void)startCapture {
+- (void)setupCaptureSessionPostion:(AVCaptureDevicePosition) position {
+    [self.cameraManager setupCaptureSessionPostion:position];
+}
+
+- (void)startCaptureSession {
     self.glassesImageView.hidden = !self.isShowFaceDetectBorder;
-    if (!self.captureSession.isRunning) {
-        NSLog(@"captureSession %@", self.captureSession.isRunning ? @"运行中" : @"需启动");
-        [self.captureSession startRunning];
+    if (!self.cameraManager.captureSession.isRunning) {
+        NSLog(@"captureSession %@", self.cameraManager.captureSession.isRunning ? @"运行中" : @"需启动");
+        [self.cameraManager.captureSession startRunning];
     }
 }
 
-- (void)stopCapture {
-    if (self.captureSession.isRunning) {
-        [self.captureSession stopRunning];
-        self.captureSession = nil;
+- (void)stopCaptureSession {
+    if (self.cameraManager.captureSession.isRunning) {
+        [self.cameraManager.captureSession stopRunning];
     }
 }
+
 /**
  切换摄像头按钮的点击方法的实现（切换摄像头时可以添加转场动画）
  */
@@ -185,7 +92,7 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
         return;
     }
     //获取当前相机的方向（前/后）
-    AVCaptureDevicePosition position = self.deviceInput.device.position;
+    AVCaptureDevicePosition position = self.cameraManager.device.position;
     
     //为摄像头的转换加转场动画
     CATransition *animation = [CATransition animation];
@@ -201,29 +108,29 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
         toPosition = AVCaptureDevicePositionFront;
         animation.subtype = kCATransitionFromRight;
     }
-    [self.previewLayer addAnimation:animation forKey:nil];
-    [self setupCaptureSessionPostion:toPosition];
+    [self.cameraManager.previewLayer addAnimation:animation forKey:nil];
+    [self.cameraManager setupCaptureSessionPostion:toPosition];
 }
 
 - (void)switchFlash {
     AVCaptureTorchMode newMode = AVCaptureTorchModeOff;
-    if (self.deviceInput.device.torchMode == AVCaptureTorchModeOff) {
+    if (self.cameraManager.device.torchMode == AVCaptureTorchModeOff) {
         newMode = AVCaptureTorchModeAuto;
-    } else if (self.deviceInput.device.torchMode == AVCaptureTorchModeAuto) {
+    } else if (self.cameraManager.device.torchMode == AVCaptureTorchModeAuto) {
         newMode = AVCaptureTorchModeOn;
     } else {
         newMode = AVCaptureTorchModeOff;
     }
     
-    [self.deviceInput.device lockForConfiguration:nil];
-    self.deviceInput.device.torchMode = newMode;
-    [self.deviceInput.device unlockForConfiguration];
+    [self.cameraManager.device lockForConfiguration:nil];
+    self.cameraManager.device.torchMode = newMode;
+    [self.cameraManager.device unlockForConfiguration];
 }
 
 - (void)resetCameraFrame:(CGRect)frame {
     self.blurView.hidden = NO;
     
-    [UIView animateWithDuration:GWArcFaceCameraAnimationDuration
+    [UIView animateWithDuration:0.3
                           delay:0
                         options:UIViewAnimationOptionCurveLinear
                      animations:^{
@@ -238,42 +145,42 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.previewLayer.frame = self.bounds;
+    self.cameraManager.previewLayer.frame = self.bounds;
     self.focusImageView.center = CGPointMake(self.bounds.size.width / 2.0, self.bounds.size.height / 2.0);
 }
 
 - (void)setVideoZoom:(CGFloat)zoom {
-    if (self.deviceInput.device.activeFormat.videoMaxZoomFactor > zoom && zoom >= 1.0) {
-        [self.deviceInput.device lockForConfiguration:nil];
-        [self.deviceInput.device rampToVideoZoomFactor:zoom withRate:4.0];
-        [self.deviceInput.device unlockForConfiguration];
+    if (self.cameraManager.device.activeFormat.videoMaxZoomFactor > zoom && zoom >= 1.0) {
+        [self.cameraManager.device lockForConfiguration:nil];
+        [self.cameraManager.device rampToVideoZoomFactor:zoom withRate:4.0];
+        [self.cameraManager.device unlockForConfiguration];
     }
     
-    if (zoom < 1.0 && self.deviceInput.device.videoZoomFactor >= 1) {
-        [self.deviceInput.device lockForConfiguration:nil];
-        [self.deviceInput.device rampToVideoZoomFactor:(self.deviceInput.device.videoZoomFactor - zoom) withRate:4.0];
-        [self.deviceInput.device unlockForConfiguration];
+    if (zoom < 1.0 && self.cameraManager.device.videoZoomFactor >= 1) {
+        [self.cameraManager.device lockForConfiguration:nil];
+        [self.cameraManager.device rampToVideoZoomFactor:(self.cameraManager.device.videoZoomFactor - zoom) withRate:4.0];
+        [self.cameraManager.device unlockForConfiguration];
     }
 }
 
 - (void)resetFocusAndExposure {
     AVCaptureFocusMode focusMode = AVCaptureFocusModeContinuousAutoFocus;
-    BOOL canResetFocus = [self.deviceInput.device isFocusPointOfInterestSupported] && [self.deviceInput.device isFocusModeSupported:focusMode];
+    BOOL canResetFocus = [self.cameraManager.device isFocusPointOfInterestSupported] && [self.cameraManager.device isFocusModeSupported:focusMode];
     
     AVCaptureExposureMode exposureMode = AVCaptureExposureModeContinuousAutoExposure;
-    BOOL canResetExposure = [self.deviceInput.device isExposurePointOfInterestSupported] && [self.deviceInput.device isExposureModeSupported:exposureMode];
+    BOOL canResetExposure = [self.cameraManager.device isExposurePointOfInterestSupported] && [self.cameraManager.device isExposureModeSupported:exposureMode];
     
     CGPoint centerPoint = CGPointMake(0.5f, 0.5f);
     
-    if (![self.deviceInput.device lockForConfiguration:nil]) return;
+    if (![self.cameraManager.device lockForConfiguration:nil]) return;
     if (canResetFocus) {
-        self.deviceInput.device.focusMode = focusMode;
+        self.cameraManager.device.focusMode = focusMode;
     }
     if (canResetExposure) {
-        self.deviceInput.device.exposureMode = exposureMode;
-        self.deviceInput.device.exposurePointOfInterest = centerPoint;
+        self.cameraManager.device.exposureMode = exposureMode;
+        self.cameraManager.device.exposurePointOfInterest = centerPoint;
     }
-    [self.deviceInput.device unlockForConfiguration];
+    [self.cameraManager.device unlockForConfiguration];
 }
 
 - (void)actionTapGesture:(UITapGestureRecognizer *)sender {
@@ -281,12 +188,12 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     
     CGPoint center = [sender locationInView:sender.view];
     CGFloat xValue = center.y / self.bounds.size.height;
-    CGFloat yValue = self.deviceInput.device.position == AVCaptureDevicePositionFront ? (center.x / self.bounds.size.width) : (1 - center.x / self.bounds.size.width);
-    self.focusPoint = CGPointMake(xValue,yValue);
+    CGFloat yValue = self.cameraManager.device.position == AVCaptureDevicePositionFront ? (center.x / self.bounds.size.width) : (1 - center.x / self.bounds.size.width);
+    self.cameraManager.focusPoint = CGPointMake(xValue,yValue);
     self.focusImageView.center = center;
     self.focusImageView.transform = CGAffineTransformIdentity;
     
-    [UIView animateWithDuration:GWArcFaceCameraAnimationDuration
+    [UIView animateWithDuration:0.3
                           delay:0
                         options:UIViewAnimationOptionCurveLinear
                      animations:^{
@@ -314,7 +221,7 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
 {
     if (sender.state == UIGestureRecognizerStateBegan || sender.state == UIGestureRecognizerStateChanged) {
         CGFloat currentZoomFactor = _currentZoomFactor * sender.scale;
-        if (currentZoomFactor < self.deviceInput.device.activeFormat.videoMaxZoomFactor
+        if (currentZoomFactor < self.cameraManager.device.activeFormat.videoMaxZoomFactor
             && currentZoomFactor > 1.0) {
             [self setVideoZoom:currentZoomFactor];
         }
@@ -322,19 +229,8 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
 }
 
 #pragma mark - setter && getter
-- (AVCaptureVideoPreviewLayer *)previewLayer
-{
-    if (!_previewLayer)
-    {
-        _previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.captureSession];
-        [_previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
-        _previewLayer.frame = self.bounds;
-    }
-    return _previewLayer;
-}
 
-- (AVCaptureDevice *)captureDeviceWithPosition:(AVCaptureDevicePosition)position
-{
+- (AVCaptureDevice *)captureDeviceWithPosition:(AVCaptureDevicePosition)position {
     AVCaptureDeviceDiscoverySession *deviceDiscoverySession = [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInWideAngleCamera] mediaType:AVMediaTypeVideo position:position];
     NSArray *devices  = deviceDiscoverySession.devices;
     for (AVCaptureDevice *device in devices) {
@@ -345,8 +241,7 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     return nil;
 }
 
-- (UIVisualEffectView *)blurView
-{
+- (UIVisualEffectView *)blurView {
     if (!_blurView)
     {
         UIBlurEffect * effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
@@ -357,8 +252,7 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     return _blurView;
 }
 
-- (UIImageView *)focusImageView
-{
+- (UIImageView *)focusImageView {
     if (!_focusImageView)
     {
         _focusImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"camera_focus"]];
@@ -370,8 +264,7 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     return _focusImageView;
 }
 
-- (UITapGestureRecognizer *)tapGesture
-{
+- (UITapGestureRecognizer *)tapGesture {
     if (!_tapGesture)
     {
         _tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(actionTapGesture:)];
@@ -379,8 +272,7 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     return _tapGesture;
 }
 
-- (UIPinchGestureRecognizer *)pinGesture
-{
+- (UIPinchGestureRecognizer *)pinGesture {
     if (!_pinGesture)
     {
         _pinGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(actionPinGesture:)];
@@ -389,8 +281,7 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     return _pinGesture;
 }
 
-- (UIImageView *)glassesImageView
-{
+- (UIImageView *)glassesImageView {
     if (!_glassesImageView)
     {
         _glassesImageView = [[UIImageView alloc] initWithFrame:CGRectZero];
@@ -401,17 +292,15 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
 }
 
 #pragma mark - Gesture
-- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
-{
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
     if (gestureRecognizer == self.pinGesture) {
-        _currentZoomFactor = self.deviceInput.device.videoZoomFactor;
+        _currentZoomFactor = self.cameraManager.device.videoZoomFactor;
     }
     return YES;
 }
 
 #pragma mark - Touch
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
-{
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     // _shouldExposureEnable NO时不处理
     if (!_shouldExposureEnable) return;
     
@@ -420,8 +309,7 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     _startLocationY = center.y;
 }
 
-- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
-{
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     // _shouldExposureEnable NO时不处理
     if (!_shouldExposureEnable) return;
     
@@ -440,17 +328,15 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     } else {
         exposureValue = (value - 0.5) * 4;
     }
-    self.exposureValue = exposureValue;
+    self.cameraManager.exposureValue = exposureValue;
 }
 
-- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
-{
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     // _shouldExposureEnable NO时不处理
     if (!_shouldExposureEnable) return;
 }
 
-- (CGRect)convertRect:(CGRect)boundingBox imageSize:(CGSize)imageSize
-{
+- (CGRect)convertRect:(CGRect)boundingBox imageSize:(CGSize)imageSize {
     CGFloat w = boundingBox.size.width * imageSize.width;
     CGFloat h = boundingBox.size.height * imageSize.height;
     CGFloat x = boundingBox.origin.x * imageSize.width;
@@ -459,9 +345,8 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
 }
 
 #pragma mark - AVCaptureVideoDataOutputSampleBufferDelegate
-- (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
-{
-    if (!self.captureSession.isRunning)
+- (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
+    if (!self.cameraManager.captureSession.isRunning)
     {
         return;
     }
@@ -473,7 +358,7 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
     }
     @autoreleasepool {
         CFRetain(sampleBuffer);
-        if (connection == self.videoConnection) {
+        if (connection == self.cameraManager.videoConnection) {
             if ([self.delegate respondsToSelector:@selector(captureOutput:didOutputSampleBuffer:fromConnection:)]) {
                 [self.delegate captureOutput:output didOutputSampleBuffer:sampleBuffer fromConnection:connection];
             }
@@ -483,24 +368,6 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
 }
 
 #pragma mark - Setter
-- (void)setFocusPoint:(CGPoint)focusPoint {
-    _focusPoint = focusPoint;
-    
-    if (!self.deviceInput.device.focusPointOfInterestSupported) return;
-    if (![self.deviceInput.device lockForConfiguration:nil]) return;
-    self.deviceInput.device.focusPointOfInterest = focusPoint;
-    self.deviceInput.device.focusMode = AVCaptureFocusModeAutoFocus;
-    [self.deviceInput.device unlockForConfiguration];
-}
-
-- (void)setExposureValue:(CGFloat)exposureValue {
-    _exposureValue = exposureValue;
-    
-    if (![self.deviceInput.device lockForConfiguration:nil]) return;
-    self.deviceInput.device.exposureMode = AVCaptureExposureModeContinuousAutoExposure;
-    [self.deviceInput.device setExposureTargetBias:exposureValue completionHandler:nil];
-    [self.deviceInput.device unlockForConfiguration];
-}
 
 - (void)setFocusImage:(UIImage *)focusImage {
     _focusImage = focusImage;
@@ -520,33 +387,27 @@ static CGFloat GWArcFaceCameraAnimationDuration = 0.3;
 - (void)setShouldFocusEnable:(BOOL)shouldFocusEnable {
     _shouldFocusEnable = shouldFocusEnable;
     
-    if (shouldFocusEnable)
-    {
+    if (shouldFocusEnable) {
         [self addGestureRecognizer:self.tapGesture];
-    }
-    else
-    {
+    } else {
         [self removeGestureRecognizer:self.tapGesture];
     }
 }
 
-- (AVCaptureTorchMode)flashMode
-{
-    return self.deviceInput.device.torchMode;
-}
-
-- (dispatch_queue_t)videoCaptureQueue
-{
-    if (!_videoCaptureQueue)
-    {
-        _videoCaptureQueue = dispatch_queue_create("com.faceDectCamera.videoCaptureQueue", NULL);
-    }
-    return _videoCaptureQueue;
-}
-- (void)dealloc
-{
-    [self stopCapture];
+- (void)dealloc {
+    [self stopCaptureSession];
     NSLog(@"%s", __func__);
 }
 
+- (GWCameraManager *)cameraManager {
+    if (!_cameraManager) {
+        _cameraManager = [[GWCameraManager alloc] init];
+        _cameraManager.delegate = self;
+    }
+    return _cameraManager;
+}
+
+- (AVCaptureDevicePosition)position {
+    return self.cameraManager.device.position;
+}
 @end

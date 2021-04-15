@@ -11,17 +11,16 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol GWCameraManagerDelegate <NSObject>
+@protocol CameraManagerDelegate <NSObject>
 
 @optional
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
-
 @end
 
 @interface GWCameraManager : NSObject
 
-@property (nonatomic, weak, nullable) id<GWCameraManagerDelegate> delegate;
+@property (nonatomic, weak, nullable) id<CameraManagerDelegate> delegate;
 
 @property (nonatomic, strong, readonly) AVCaptureVideoPreviewLayer *previewLayer;
 

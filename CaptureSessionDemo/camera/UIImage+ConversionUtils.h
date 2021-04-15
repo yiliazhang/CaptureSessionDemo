@@ -2,7 +2,8 @@
 //  UIImage+ConversionUtils.h
 //  GWFaceDetect
 //
-//  Created by admin on 2020/4/7.
+//  Created by Yilia on 2021/4/6.
+//  Copyright © 2021 Goldwind. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

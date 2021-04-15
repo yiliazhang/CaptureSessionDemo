@@ -6,7 +6,6 @@
 //
 
 #import "ViewController.h"
-#import "GWDetectFaceViewController.h"
 #import "CameraFaceViewController.h"
 @interface ViewController ()
 
@@ -21,11 +20,7 @@
 }
 
 - (IBAction)showFaceCollect:(id)sender {
-    GWDetectFaceViewController *viewController = [[GWDetectFaceViewController alloc] init];
-    viewController.uploadCompletionBlock = ^(NSString * _Nonnull mediaID) {
-        [self.navigationController popViewControllerAnimated:YES];
-    };
-    [self.navigationController pushViewController:viewController animated:YES];
+    
 }
 
 - (IBAction)showFaceCollect1:(id)sender {

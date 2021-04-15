@@ -9,8 +9,7 @@
 #import "GWCameraManager.h"
 #import <UIKit/UIKit.h>
 
-@interface GWCameraManager ()<AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate
->
+@interface GWCameraManager ()<AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate>
 ///
 @property (nonatomic, strong) AVCaptureVideoPreviewLayer *previewLayer;
 
@@ -294,12 +293,12 @@
     return self.deviceInput.device;
 }
 
-- (AVCaptureVideoPreviewLayer *)previewLayer
-{
+- (AVCaptureVideoPreviewLayer *)previewLayer {
     if (!_previewLayer)
     {
         _previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.captureSession];
         [_previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
+        
     }
     return _previewLayer;
 }

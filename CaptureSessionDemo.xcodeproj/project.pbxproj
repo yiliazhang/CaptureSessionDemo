@@ -10,9 +10,7 @@
 		310327DB2626DC6000D1BBF8 /* CameraView.m in Sources */ = {isa = PBXBuildFile; fileRef = 310327DA2626DC6000D1BBF8 /* CameraView.m */; };
 		310327DF2626DD1F00D1BBF8 /* CameraFaceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 310327DE2626DD1F00D1BBF8 /* CameraFaceViewController.m */; };
 		31844890261C2DF700F11ECC /* GWCameraManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3184488F261C2DF700F11ECC /* GWCameraManager.m */; };
-		318448E5261D3BF200F11ECC /* GWArcFaceCameraView.m in Sources */ = {isa = PBXBuildFile; fileRef = 318448E3261D3BF200F11ECC /* GWArcFaceCameraView.m */; };
 		318448F0261DB94C00F11ECC /* UIImage+ConversionUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 318448EF261DB94C00F11ECC /* UIImage+ConversionUtils.m */; };
-		318448F8261DBEC000F11ECC /* GWDetectFaceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 318448F6261DBEC000F11ECC /* GWDetectFaceViewController.m */; };
 		31FCC091261714F8008A1A04 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 31FCC090261714F8008A1A04 /* AppDelegate.m */; };
 		31FCC094261714F8008A1A04 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 31FCC093261714F8008A1A04 /* SceneDelegate.m */; };
 		31FCC097261714F8008A1A04 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 31FCC096261714F8008A1A04 /* ViewController.m */; };
@@ -31,12 +29,8 @@
 		310327DE2626DD1F00D1BBF8 /* CameraFaceViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CameraFaceViewController.m; sourceTree = "<group>"; };
 		3184488E261C2DF700F11ECC /* GWCameraManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GWCameraManager.h; sourceTree = "<group>"; };
 		3184488F261C2DF700F11ECC /* GWCameraManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GWCameraManager.m; sourceTree = "<group>"; };
-		318448E3261D3BF200F11ECC /* GWArcFaceCameraView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GWArcFaceCameraView.m; sourceTree = "<group>"; };
-		318448E4261D3BF200F11ECC /* GWArcFaceCameraView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GWArcFaceCameraView.h; sourceTree = "<group>"; };
 		318448EE261DB94C00F11ECC /* UIImage+ConversionUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ConversionUtils.h"; sourceTree = "<group>"; };
 		318448EF261DB94C00F11ECC /* UIImage+ConversionUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ConversionUtils.m"; sourceTree = "<group>"; };
-		318448F6261DBEC000F11ECC /* GWDetectFaceViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GWDetectFaceViewController.m; sourceTree = "<group>"; };
-		318448F7261DBEC000F11ECC /* GWDetectFaceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GWDetectFaceViewController.h; sourceTree = "<group>"; };
 		31FCC08C261714F8008A1A04 /* CaptureSessionDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CaptureSessionDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		31FCC08F261714F8008A1A04 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		31FCC090261714F8008A1A04 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -105,12 +99,8 @@
 		31FCC0A92617152A008A1A04 /* camera */ = {
 			isa = PBXGroup;
 			children = (
-				318448E4261D3BF200F11ECC /* GWArcFaceCameraView.h */,
-				318448E3261D3BF200F11ECC /* GWArcFaceCameraView.m */,
 				3184488E261C2DF700F11ECC /* GWCameraManager.h */,
 				3184488F261C2DF700F11ECC /* GWCameraManager.m */,
-				318448F7261DBEC000F11ECC /* GWDetectFaceViewController.h */,
-				318448F6261DBEC000F11ECC /* GWDetectFaceViewController.m */,
 				318448EE261DB94C00F11ECC /* UIImage+ConversionUtils.h */,
 				318448EF261DB94C00F11ECC /* UIImage+ConversionUtils.m */,
 				310327D92626DC6000D1BBF8 /* CameraView.h */,
@@ -254,12 +244,10 @@
 				31FCC097261714F8008A1A04 /* ViewController.m in Sources */,
 				31FCC091261714F8008A1A04 /* AppDelegate.m in Sources */,
 				310327DF2626DD1F00D1BBF8 /* CameraFaceViewController.m in Sources */,
-				318448F8261DBEC000F11ECC /* GWDetectFaceViewController.m in Sources */,
 				31FCC0A2261714FB008A1A04 /* main.m in Sources */,
 				31844890261C2DF700F11ECC /* GWCameraManager.m in Sources */,
 				318448F0261DB94C00F11ECC /* UIImage+ConversionUtils.m in Sources */,
 				31FCC094261714F8008A1A04 /* SceneDelegate.m in Sources */,
-				318448E5261D3BF200F11ECC /* GWArcFaceCameraView.m in Sources */,
 				310327DB2626DC6000D1BBF8 /* CameraView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
