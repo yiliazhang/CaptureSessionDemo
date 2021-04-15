@@ -44,13 +44,11 @@
 @property(nonatomic, strong) NSString *errorResults;
 
 /// 绿框
-@property (nonatomic, strong) UIView *rectLayer;
+//@property (nonatomic, strong) UIView *rectLayer;
 /// 相机视图
 @property(nonatomic, strong) UIView *cameraView;
 /// 相机视图
 @property(nonatomic, strong) UIImage *lastImage;
-///
-@property (nonatomic) CGSize size;
 @property (strong, nonatomic) CameraView *faceCameraView;
 @end
 
@@ -82,7 +80,7 @@ static CGFloat const kDetectFaceHeight = 384.0;
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    self.size = self.cameraView.frame.size;
+//    self.size = self.cameraView.frame.size;
     [self.faceCameraView startCaptureSession];
 }
 
@@ -216,7 +214,7 @@ static CGFloat const kDetectFaceHeight = 384.0;
 /// 拍照
 - (void)shootingButtonAction:(UIButton *)sender
 {
-    self.rectLayer.hidden = YES;
+//    self.rectLayer.hidden = YES;
     if (!self.lastImage) {
         NSLog( @"未检测到有效人脸信息");
         return;
@@ -247,7 +245,7 @@ static CGFloat const kDetectFaceHeight = 384.0;
 - (void)reShootButtonAction:(UIButton *)sender
 {
     self.lastImage = nil;
-    self.rectLayer.hidden = YES;
+//    self.rectLayer.hidden = YES;
     // 初始化结果
     self.errorResults = @"";
     // 隐藏拍摄结果
@@ -424,19 +422,6 @@ static CGFloat const kDetectFaceHeight = 384.0;
     return _photoImageView;
 }
 
-
-- (UIView *)rectLayer
-{
-    if (!_rectLayer)
-    {
-        _rectLayer = [[UIView alloc] init];
-        _rectLayer.layer.borderColor = [UIColor greenColor].CGColor;
-        _rectLayer.layer.borderWidth = 1.5;
-    }
-    return _rectLayer;
-}
-
-
 - (UIView *)cameraView {
     if (!_cameraView) {
         UIView *view = [[UIView alloc] init];
@@ -449,29 +434,16 @@ static CGFloat const kDetectFaceHeight = 384.0;
 /// 切换摄像头
 - (void)switchCameraAction:(UIButton *)sender {
     self.lastImage = nil;
-    self.rectLayer.hidden = YES;
+//    self.rectLayer.hidden = YES;
     [self.faceCameraView switchCamera];
 }
 
 // 拍照，将当前采样模式切换为拍照
 
 #pragma mark - AVCaptureVideoDataOutputSampleBufferDelegate
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    __weak __typeof(self)weakSelf = self;
-    
-        UIImage *image = [UIImage imageNV12FromSampleBuffer:sampleBuffer position:self.faceCameraView.position];
-        if (!image || image.size.height == 0 || image.size.width == 0) {
-            
-        } else {
-            self.lastImage = image;
-            [image faceDetectWithViewSize:self.size finish:^(NSString * _Nonnull errorResults, CGRect faceViewBounds) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    // 是否检测成功
-                    weakSelf.rectLayer.frame = faceViewBounds;
-                    weakSelf.rectLayer.hidden = NO;
-                });
-            }];
-        }
+
+- (void)captureOutputImage:(UIImage *)image {
+    self.lastImage = image;
 }
 #pragma mark - Setter
 
@@ -493,12 +465,10 @@ static CGFloat const kDetectFaceHeight = 384.0;
         _faceCameraView.delegate = self;
         _faceCameraView.shouldScaleEnable = YES;
         _faceCameraView.shouldFocusEnable = YES;
-        _faceCameraView.shouldFocusEnable = YES;
         _faceCameraView.isShowFaceDetectBorder = YES;
+        _faceCameraView.shouldExposureEnable = YES;
         // 导入到相册的图片尺寸比例
         _faceCameraView.cutoutImageSize = CGSizeMake(246, 260);
-        [_faceCameraView addSubview:self.rectLayer];
-        self.rectLayer.hidden = YES;
     }
     return _faceCameraView;
 }

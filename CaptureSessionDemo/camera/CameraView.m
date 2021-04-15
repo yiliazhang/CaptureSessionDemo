@@ -26,6 +26,10 @@
 @property (nonatomic, strong) UIVisualEffectView *blurView;
 @property (nonatomic, strong) UIImageView *focusImageView;
 @property (nonatomic, strong) NSTimer *focusTimer;
+/// 绿框
+@property (nonatomic, strong) UIView *rectLayer;
+///
+@property (nonatomic) CGSize size;
 @end
 
 @implementation CameraView
@@ -47,8 +51,6 @@
 }
 
 - (void)setupSubviews {
-    //        self.isShowFaceDetectBorder = YES;
-    self.shouldExposureEnable = NO;
     [self.layer addSublayer:self.cameraManager.previewLayer];
     //[self addSubview:self.blurView];
     [self addSubview:self.focusImageView];
@@ -60,6 +62,7 @@
     [self.glassesImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.bottom.top.equalTo(self);
     }];
+    [self addSubview:self.rectLayer];
 }
 
 - (void)setupCaptureSessionPostion:(AVCaptureDevicePosition) position {
@@ -113,18 +116,7 @@
 }
 
 - (void)switchFlash {
-    AVCaptureTorchMode newMode = AVCaptureTorchModeOff;
-    if (self.cameraManager.device.torchMode == AVCaptureTorchModeOff) {
-        newMode = AVCaptureTorchModeAuto;
-    } else if (self.cameraManager.device.torchMode == AVCaptureTorchModeAuto) {
-        newMode = AVCaptureTorchModeOn;
-    } else {
-        newMode = AVCaptureTorchModeOff;
-    }
-    
-    [self.cameraManager.device lockForConfiguration:nil];
-    self.cameraManager.device.torchMode = newMode;
-    [self.cameraManager.device unlockForConfiguration];
+    [self.cameraManager switchFlash];
 }
 
 - (void)resetCameraFrame:(CGRect)frame {
@@ -144,9 +136,9 @@
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
     self.cameraManager.previewLayer.frame = self.bounds;
     self.focusImageView.center = CGPointMake(self.bounds.size.width / 2.0, self.bounds.size.height / 2.0);
+    self.size = self.bounds.size;
 }
 
 - (void)setVideoZoom:(CGFloat)zoom {
@@ -161,26 +153,6 @@
         [self.cameraManager.device rampToVideoZoomFactor:(self.cameraManager.device.videoZoomFactor - zoom) withRate:4.0];
         [self.cameraManager.device unlockForConfiguration];
     }
-}
-
-- (void)resetFocusAndExposure {
-    AVCaptureFocusMode focusMode = AVCaptureFocusModeContinuousAutoFocus;
-    BOOL canResetFocus = [self.cameraManager.device isFocusPointOfInterestSupported] && [self.cameraManager.device isFocusModeSupported:focusMode];
-    
-    AVCaptureExposureMode exposureMode = AVCaptureExposureModeContinuousAutoExposure;
-    BOOL canResetExposure = [self.cameraManager.device isExposurePointOfInterestSupported] && [self.cameraManager.device isExposureModeSupported:exposureMode];
-    
-    CGPoint centerPoint = CGPointMake(0.5f, 0.5f);
-    
-    if (![self.cameraManager.device lockForConfiguration:nil]) return;
-    if (canResetFocus) {
-        self.cameraManager.device.focusMode = focusMode;
-    }
-    if (canResetExposure) {
-        self.cameraManager.device.exposureMode = exposureMode;
-        self.cameraManager.device.exposurePointOfInterest = centerPoint;
-    }
-    [self.cameraManager.device unlockForConfiguration];
 }
 
 - (void)actionTapGesture:(UITapGestureRecognizer *)sender {
@@ -340,7 +312,7 @@
     CGFloat w = boundingBox.size.width * imageSize.width;
     CGFloat h = boundingBox.size.height * imageSize.height;
     CGFloat x = boundingBox.origin.x * imageSize.width;
-    CGFloat y = imageSize.height * (1 - boundingBox.origin.y - boundingBox.size.height);//- (boundingBox.origin.y * imageSize.height) - h;
+    CGFloat y = imageSize.height * (1 - boundingBox.origin.y - boundingBox.size.height);
     return CGRectMake(x, y, w, h);
 }
 
@@ -357,13 +329,34 @@
         return;
     }
     @autoreleasepool {
-        CFRetain(sampleBuffer);
-        if (connection == self.cameraManager.videoConnection) {
-            if ([self.delegate respondsToSelector:@selector(captureOutput:didOutputSampleBuffer:fromConnection:)]) {
-                [self.delegate captureOutput:output didOutputSampleBuffer:sampleBuffer fromConnection:connection];
-            }
-            CFRelease(sampleBuffer);
+        if (connection != self.cameraManager.videoConnection) {
+            return;
         }
+        CFRetain(sampleBuffer);
+        UIImage *image = [UIImage imageNV12FromSampleBuffer:sampleBuffer position:self.position];
+        if (!image || image.size.height == 0 || image.size.width == 0) {
+            self.rectLayer.hidden = YES;
+//            image = nil;
+        } else {
+            if ([self.delegate respondsToSelector:@selector(captureOutputImage:)]) {
+                [self.delegate captureOutputImage:image];
+            }
+            __weak typeof(self) weakSelf = self;
+            [image faceDetectWithViewSize:self.size finish:^(NSString * _Nonnull errorResults, CGRect faceViewBounds) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    // 是否检测成功
+                    weakSelf.rectLayer.frame = faceViewBounds;
+                    weakSelf.rectLayer.hidden = NO;
+                });
+            }];
+        }
+        
+        
+        if ([self.delegate respondsToSelector:@selector(captureOutput:didOutputSampleBuffer:fromConnection:)]) {
+            [self.delegate captureOutput:output didOutputSampleBuffer:sampleBuffer fromConnection:connection];
+        }
+        CFRelease(sampleBuffer);
+        
     }
 }
 
@@ -409,5 +402,16 @@
 
 - (AVCaptureDevicePosition)position {
     return self.cameraManager.device.position;
+}
+
+- (UIView *)rectLayer
+{
+    if (!_rectLayer)
+    {
+        _rectLayer = [[UIView alloc] init];
+        _rectLayer.layer.borderColor = [UIColor greenColor].CGColor;
+        _rectLayer.layer.borderWidth = 1.5;
+    }
+    return _rectLayer;
 }
 @end

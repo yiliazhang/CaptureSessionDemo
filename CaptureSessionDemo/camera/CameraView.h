@@ -13,6 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol CameraViewDelegate <NSObject>
 @optional
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
+
+- (void)captureOutputImage:(UIImage *)image;
 @end
 
 @interface CameraView : UIView
