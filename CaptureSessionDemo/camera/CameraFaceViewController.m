@@ -407,7 +407,7 @@ static CGFloat const kDetectFaceHeight = 384.0;
         _promptLabel.font = [UIFont systemFontOfSize:15];
         _promptLabel.textColor = [UIColor grayColor];
         _promptLabel.numberOfLines = 0;
-        _promptLabel.text = @"facedetect.content.commonPromote";
+//        _promptLabel.text = @"facedetect.content.commonPromote";
         _promptLabel.textAlignment = NSTextAlignmentCenter;
     }
     return _promptLabel;
